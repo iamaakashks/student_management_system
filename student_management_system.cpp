@@ -82,26 +82,78 @@ public:
 
 
     void removeStudent() {
-        int roll;
-        cout << "Enter roll number to remove: ";
-        cin >> roll;
+        int choice;
+        while (true) {
+            cout << "\n--- Remove Student ---\n";
+            cout << "1. Remove by Roll Number\n";
+            cout << "2. Remove by Name\n";
+            cout << "0. Go back to Main Menu\n";
+            cout << "Enter your choice: ";
+            cin >> choice;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        auto it = remove_if(students.begin(), students.end(),
-                            [roll](Student& s) { return s.getRollNumber() == roll; });
+            if (choice == 0) {
+                cout << "Returning to main menu...\n";
+                return;
+            }
 
-        if (it != students.end()) {
-            cout << "Confirm removal:\n";
-            it->display();
-            cout << "Press ENTER to confirm deletion...\n";
-            cin.ignore();
-            cin.get();
+            if (choice == 1) {
+                int roll;
+                cout << "Enter roll number of student to remove: ";
+                cin >> roll;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            students.erase(it, students.end());
-            cout << "Student removed.\n";
-        } else {
-            cout << "Student not found.\n";
+                auto it = find_if(students.begin(), students.end(),
+                                [roll](const Student& s) { return s.getRollNumber() == roll; });
+
+                if (it != students.end()) {
+                    cout << "Student found:\n";
+                    it->display();
+                    cout << "Press ENTER to confirm deletion, or type 0 and press ENTER to cancel: ";
+                    string confirm;
+                    getline(cin, confirm);
+                    if (confirm == "0") {
+                        cout << "Deletion canceled.\n";
+                    } else {
+                        students.erase(it);
+                        cout << "Student removed successfully.\n";
+                    }
+                } else {
+                    cout << "No student found with that roll number.\n";
+                }
+                return;
+
+            } else if (choice == 2) {
+                string name;
+                cout << "Enter name of student to remove: ";
+                getline(cin, name);
+
+                auto it = find_if(students.begin(), students.end(),
+                                [name](const Student& s) { return s.getName() == name; });
+
+                if (it != students.end()) {
+                    cout << "Student found:\n";
+                    it->display();
+                    cout << "Press ENTER to confirm deletion, or type 0 and press ENTER to cancel: ";
+                    string confirm;
+                    getline(cin, confirm);
+                    if (confirm == "0") {
+                        cout << "Deletion canceled.\n";
+                    } else {
+                        students.erase(it);
+                        cout << "Student removed successfully.\n";
+                    }
+                } else {
+                    cout << "No student found with that name.\n";
+                }
+                return;
+
+            } else {
+                cout << "Invalid choice. Please select 0, 1 or 2.\n";
+            }
         }
     }
+
 
     void editStudent() {
         int roll;
