@@ -2,32 +2,55 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <cctype>
 using namespace std;
+
+string toCapitalized(const string& input) {
+    string result = input;
+    bool cap = true;
+    for (char& ch : result) {
+        if (isspace(ch)) {
+            cap = true;
+        } else if (cap) {
+            ch = toupper(ch);
+            cap = false;
+        } else {
+            ch = tolower(ch);
+        }
+    }
+    return result;
+}
+
+string toUpper(const string& input) {
+    string result = input;
+    transform(result.begin(), result.end(), result.begin(), ::toupper);
+    return result;
+}
+
+string normalize(const string& input) {
+    string result;
+    for (char ch : input) {
+        if (isalnum(ch)) result += tolower(ch);
+    }
+    return result;
+}
 
 class Student {
 private:
     string name;
     string branch;
-    int rollNumber;
+    string rollNumber;
 
 public:
-    Student(string name, string branch, int rollNumber) {
-        this->name = name;
-        this->branch = branch;
-        this->rollNumber = rollNumber;
+    Student(string name, string branch, string rollNumber) {
+        this->name = toCapitalized(name);
+        this->branch = toUpper(branch);
+        this->rollNumber = toUpper(rollNumber);
     }
 
-    int getRollNumber() const {
-        return rollNumber;
-    }
-
-    string getName() const {
-        return name;
-    }
-
-    string getBranch() const {
-        return branch;
-    }
+    string getRollNumber() const { return rollNumber; }
+    string getName() const { return name; }
+    string getBranch() const { return branch; }
 
     void display() const {
         cout << "\n----------------------\n";
@@ -37,10 +60,10 @@ public:
         cout << "----------------------\n";
     }
 
-    void edit(string newName, string newBranch, int newRoll) {
-        name = newName;
-        branch = newBranch;
-        rollNumber = newRoll;
+    void edit(string newName, string newBranch, string newRoll) {
+        name = toCapitalized(newName);
+        branch = toUpper(newBranch);
+        rollNumber = toUpper(newRoll);
     }
 };
 
@@ -50,8 +73,7 @@ private:
 
 public:
     void addStudent() {
-        string name, branch;
-        int roll;
+        string name, branch, roll;
 
         cout << "Enter Name: ";
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -61,12 +83,11 @@ public:
         getline(cin, branch);
 
         cout << "Enter Roll Number: ";
-        cin >> roll;
+        getline(cin, roll);
 
         students.emplace_back(name, branch, roll);
         cout << "Student added successfully!\n";
     }
-
 
     void displayAll() {
         if (students.empty()) {
@@ -79,7 +100,6 @@ public:
             student.display();
         }
     }
-
 
     void removeStudent() {
         int choice;
@@ -98,13 +118,15 @@ public:
             }
 
             if (choice == 1) {
-                int roll;
+                string roll;
                 cout << "Enter roll number of student to remove: ";
-                cin >> roll;
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                getline(cin, roll);
+                roll = normalize(roll);
 
                 auto it = find_if(students.begin(), students.end(),
-                                [roll](const Student& s) { return s.getRollNumber() == roll; });
+                    [roll](const Student& s) {
+                        return normalize(s.getRollNumber()) == roll;
+                    });
 
                 if (it != students.end()) {
                     cout << "Student found:\n";
@@ -127,9 +149,12 @@ public:
                 string name;
                 cout << "Enter name of student to remove: ";
                 getline(cin, name);
+                name = normalize(name);
 
                 auto it = find_if(students.begin(), students.end(),
-                                [name](const Student& s) { return s.getName() == name; });
+                    [name](const Student& s) {
+                        return normalize(s.getName()) == name;
+                    });
 
                 if (it != students.end()) {
                     cout << "Student found:\n";
@@ -154,19 +179,20 @@ public:
         }
     }
 
-
     void editStudent() {
-        int roll;
+        string roll;
         cout << "Enter roll number of student to edit (or 0 to cancel): ";
-        cin >> roll;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        getline(cin, roll);
 
-        if (roll == 0) {
+        if (roll == "0") {
             cout << "Returning to main menu...\n";
             return;
         }
+        roll = normalize(roll);
 
         for (auto& s : students) {
-            if (s.getRollNumber() == roll) {
+            if (normalize(s.getRollNumber()) == roll) {
                 cout << "\nFound student:\n";
                 s.display();
 
@@ -199,10 +225,9 @@ public:
                             break;
                         }
                         case 3: {
-                            int newRoll;
+                            string newRoll;
                             cout << "Enter new roll number: ";
-                            cin >> newRoll;
-                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                            getline(cin, newRoll);
                             s.edit(s.getName(), s.getBranch(), newRoll);
                             cout << "Roll number updated successfully.\n";
                             break;
@@ -220,9 +245,8 @@ public:
             }
         }
 
-        cout << "Student with roll number " << roll << " not found.\n";
+        cout << "Student with that roll number not found.\n";
     }
-
 
     void searchStudent() {
         int choice;
@@ -235,7 +259,6 @@ public:
             cout << "0. Go back to Main Menu\n";
             cout << "Enter your choice: ";
             cin >> choice;
-
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
             if (choice == 0) {
@@ -246,13 +269,13 @@ public:
             bool found = false;
 
             if (choice == 1) {
-                int roll;
+                string roll;
                 cout << "Enter roll number: ";
-                cin >> roll;
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                getline(cin, roll);
+                roll = normalize(roll);
 
                 for (const auto& s : students) {
-                    if (s.getRollNumber() == roll) {
+                    if (normalize(s.getRollNumber()) == roll) {
                         s.display();
                         found = true;
                         break;
@@ -264,9 +287,10 @@ public:
                 string name;
                 cout << "Enter name: ";
                 getline(cin, name);
+                name = normalize(name);
 
                 for (const auto& s : students) {
-                    if (s.getName() == name) {
+                    if (normalize(s.getName()) == name) {
                         s.display();
                         found = true;
                     }
@@ -277,9 +301,10 @@ public:
                 string branch;
                 cout << "Enter branch: ";
                 getline(cin, branch);
+                branch = normalize(branch);
 
                 for (const auto& s : students) {
-                    if (s.getBranch() == branch) {
+                    if (normalize(s.getBranch()) == branch) {
                         s.display();
                         found = true;
                     }
@@ -291,7 +316,6 @@ public:
             }
         }
     }
-
 };
 
 int main() {
